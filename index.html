@@ -4,8 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
   <title>AI 日报 · 每日 10 条</title>
-  <link rel="dns-prefetch" href="https://hn.algolia.com">
-  <link rel="dns-prefetch" href="https://dev.to">
+  <link rel="dns-prefetch" href="https://api.juejin.cn">
+  <link rel="dns-prefetch" href="https://www.v2ex.com">
+  <link rel="dns-prefetch" href="https://api.github.com">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{font-size:16px;-webkit-text-size-adjust:100%}
@@ -146,14 +147,14 @@ function bc(i,idx){
 const c=document.createElement('div');
 c.className='news-card';c.setAttribute('role','listitem');c.setAttribute('tabindex','0');
 const s=i._s||'other';
-const tc={hn:'hn',devto:'devo'}[s]||'other';
-const tl={hn:'HN',devto:'DEV'}[s]||s;
+const mc={jj:'&#x6398;&#x91d1;',vx:'V2EX',gh:'GitHub',hn:'HN',devo:'DEV'}[s]||s;
+const tc={jj:'devo',vx:'other',gh:'hn',hn:'hn',devo:'devo'}[s]||'other';
 const ds=i.d?new Date(i.d).toLocaleDateString('zh-CN',{month:'short',day:'numeric'}):'';
-const p=i.p?i.p+' \U0001f44d':'';
+const p=i.p||'';
 const a=i.a||'';
 c.innerHTML='<span class="num">'+(idx+1)+'</span>'
 +'<span class="title">'+tr(i.t,120)
-+'<span class="tag '+tc+'">'+tl+'</span></span>'
++'<span class="tag '+tc+'">'+mc+'</span></span>'
 +'<div class="meta-row">'
 +(ds?'<span>'+ds+'</span>':'')+(ds&&p?'<span class="dot">\u00b7</span>':'')+(p?'<span>'+p+'</span>':'')
 +(a?'<span class="dot">\u00b7</span><span>'+a+'</span>':'')+'</div>'
@@ -170,7 +171,7 @@ const sl=is.slice(0,MX);
 sl.forEach((i,idx)=>D.nl.appendChild(bc(i,idx)));
 D.tc.textContent=sl.length;D.sc.textContent=ss.size;
 D.sb.innerHTML='';
-ss.forEach(s=>{const lb={hn:'HackerNews',devto:'Dev.to'}[s]||s;const p=document.createElement('span');p.className='pill';p.innerHTML='<span style="color:#2383e2">\u2713</span> '+lb;D.sb.appendChild(p);});
+ss.forEach(s=>{const lb={jj:'\u6398\u91d1',vx:'V2EX',gh:'GitHub',hn:'HackerNews',devo:'Dev.to'}[s]||s;const p=document.createElement('span');p.className='pill';p.innerHTML='<span style="color:#2383e2">\u2713</span> '+lb;D.sb.appendChild(p);});
 }
 
 function sm(i){
@@ -197,19 +198,46 @@ fh().then(({items,sources})=>{rd(items,sources);try{localStorage.setItem(C,JSON.
 
 async function fh(){
 const all=[];const ss=new Set();
-let ok=0;
+// 1. \u6398\u91d1 - \u4e2d\u6587\u6280\u672f\u793e\u533a AI \u6587\u7ae0
 try{
-const r=await fetch('https://hn.algolia.com/api/v1/search_by_date?query=artificial+intelligence+AI+machine+learning&tags=story&hitsPerPage=15');
-if(r.ok)ok++;const d=await r.json();
-(d.hits||[]).forEach(h=>{if(!h.title||h.title==='null')return;all.push({t:h.title,u:h.url||'https://news.ycombinator.com/item?id='+h.objectID,d:h.created_at,p:h.points||h.points||0,a:h.author||'',s:h.story_text||'',_s:'hn'});});
-ss.add('hn');
-}catch(e){console.warn('HN fail',e);}
+const r=await fetch('https://api.juejin.cn/recommend_api/v1/article/recommend_all_feed',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"cursor":"0","id_type":2,"sort_type":200,"limit":20}'});
+const d=await r.json();
+if(d.data){
+  // \u7b5b\u9009 AI \u76f8\u5173\u6587\u7ae0 (\u901a\u8fc7\u6807\u7b7e)
+  const aiTags=['AI','\u4eba\u5de5\u667a\u80fd','\u5927\u6a21\u578b','\u6df1\u5ea6\u5b66\u4e60','\u673a\u5668\u5b66\u4e60','\u81ea\u7136\u8bed\u8a00\u5904\u7406','ChatGPT','GPT','\u56fe\u50cf\u8bc6\u522b','AIGC','LLM','\u8bed\u8a00\u6a21\u578b','\u8ba1\u7b97\u673a\u89c6\u89c9','\u6559\u7a0b','\u6280\u672f\u5206\u4eab','\u524d\u7aef','\u540e\u7aef','\u6570\u636e\u79d1\u5b66','\u667a\u80fd','\u7b97\u6cd5'];
+  d.data.forEach(a=>{
+    const t=a.content?.title||a.article_info?.title||'';
+    if(!t)return;
+    const tags=a.content?.category||'';
+    const match=aiTags.some(tag=>t.includes(tag)||tags.includes(tag));
+    all.push({t:t,u:a.content?.article_url||a.article_info?.article_url||'https://juejin.cn/post/'+(a.article_id||a.content?.article_id),d:a.content?.ctime?new Date(a.content.ctime*1000).toISOString():new Date().toISOString(),p:a.content?.collect_count||0+'\u6536\u85cf',a:a.content?.author||a.author||'',s:a.content?.brief||a.article_info?.brief||'',_s:'jj'});
+  });
+  ss.add('jj');
+}
+}catch(e){console.warn('\u6398\u91d1 fail',e);}
+// 2. V2EX - \u70ed\u95e8\u8bdd\u9898
 try{
-const r=await fetch('https://dev.to/api/articles?tag=artificial-intelligence&per_page=10');
-if(r.ok)ok++;const d=await r.json();
-(d||[]).forEach(a=>{if(!a.title)return;all.push({t:a.title,u:a.url,d:a.published_at,p:a.positive_reactions_count||0,a:a.user?.name||'',s:a.description||'',_s:'devto'});});
-ss.add('devto');
-}catch(e){console.warn('Dev.to fail',e);}
+const r=await fetch('https://www.v2ex.com/api/topics/hot.json');
+const d=await r.json();
+(d||[]).forEach(t=>{
+  const title=t.title||'';
+  const aiTags=['AI','\u4eba\u5de5\u667a\u80fd','\u5927\u6a21\u578b','\u6df1\u5ea6\u5b66\u4e60','\u673a\u5668\u5b66\u4e60','ChatGPT','GPT','\u667a\u80fd','\u7b97\u6cd5','LLM','\u6570\u636e','\u7f51\u7edc','\u5b89\u5168','\u524d\u7aef','\u540e\u7aef','\u5f00\u53d1','\u6280\u672f','\u8f6f\u4ef6'];
+  if(!title||!aiTags.some(tag=>title.includes(tag)))return;
+  all.push({t:title,u:'https://www.v2ex.com/t/'+t.id,d:t.created?new Date(t.created*1000).toISOString():'',p:t.replies?'\u8bc4\u8bba '+t.replies:'',a:t.member?.username||'',s:t.content||'',_s:'vx'});
+});
+ss.add('vx');
+}catch(e){console.warn('V2EX fail',e);}
+// 3. GitHub - \u4e2d\u6587 AI \u76f8\u5173\u5f00\u6e90\u9879\u76ee
+try{
+const queries=['AI','\u4eba\u5de5\u667a\u80fd','\u5927\u6a21\u578b','\u6df1\u5ea6\u5b66\u4e60','\u673a\u5668\u5b66\u4e60','LangChain','RAG','Agent'];
+const q=queries[Math.floor(Math.random()*queries.length)];
+const r=await fetch('https://api.github.com/search/repositories?q='+encodeURIComponent(q)+'&sort=stars&order=desc&per_page=5');
+const d=await r.json();
+(d.items||[]).forEach(item=>{
+  all.push({t:item.full_name+': '+item.description,u:item.html_url,d:item.pushed_at,p:item.stargazers_count+' \u2605 '+item.forks_count+' forks',a:item.owner?.login||'',s:item.description||'',_s:'gh'});
+});
+ss.add('gh');
+}catch(e){console.warn('GitHub fail',e);}
 all.sort((a,b)=>new Date(b.d||0)-new Date(a.d||0));
 return{items:all,sources:ss};
 }
