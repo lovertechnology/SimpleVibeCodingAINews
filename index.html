@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+  <title>AI 日报 · 每日 10 条</title>
+  <link rel="dns-prefetch" href="https://hn.algolia.com">
+  <link rel="dns-prefetch" href="https://dev.to">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,"Apple Color Emoji","Segoe UI Emoji",Arial,sans-serif;background:#fff;color:#2d2d2d;line-height:1.6;padding-bottom:80px;min-height:100vh}
+a{color:inherit;text-decoration:none}
+.page{max-width:880px;margin:0 auto;padding:40px 24px}
+@media(max-width:600px){.page{padding:20px 16px}}
+.page-header{margin-bottom:40px;padding-bottom:24px;border-bottom:1px solid #e9e9e9}
+.page-header .icon{font-size:2.5rem;margin-bottom:8px}
+.page-header h1{font-size:2rem;font-weight:700;letter-spacing:-0.02em;line-height:1.3;margin-bottom:6px}
+.page-header .meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:#6b6b6b;font-size:.875rem;margin-top:4px}
+.meta .dot{color:#c0c0c0}.meta .status{display:inline-flex;align-items:center;gap:4px}
+.status .spinner{display:inline-block;width:12px;height:12px;border:2px solid #e0e0e0;border-top-color:#6b6b6b;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.section-title{display:flex;align-items:center;gap:8px;font-size:1.05rem;font-weight:600;color:#37352f;margin:0 0 12px 0;padding:4px 2px}
+.section-title .toggle-icon{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;font-size:.75rem;color:#b0b0b0;transition:background .12s;flex-shrink:0}
+.section-title:hover .toggle-icon{background:#efefef}
+
+.news-list{margin-bottom:32px}
+.news-card{position:relative;display:block;padding:10px 12px;border-radius:6px;transition:background .12s ease;cursor:pointer;margin:0 -4px}
+.news-card:hover{background:#f7f6f3}
+.news-card:active{background:#efefef}
+.news-card .num{position:absolute;left:-28px;top:12px;width:22px;text-align:right;font-size:.8rem;color:#b0b0b0}
+@media(max-width:600px){.news-card{padding:10px 8px;margin:0}.news-card .num{display:none}}
+.news-card .title{font-size:.95rem;font-weight:500;line-height:1.5;color:#2d2d2d;word-break:break-word}
+.news-card .title .tag{display:inline-block;font-size:.7rem;font-weight:500;padding:0 6px;margin-left:6px;border-radius:4px;vertical-align:middle;line-height:1.6}
+.tag.hn{background:#f97316;color:#fff}.tag.devo{background:#3b49df;color:#fff}.tag.other{background:#6b7280;color:#fff}
+.news-card .meta-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:3px;font-size:.8rem;color:#9b9b9b}
+.news-card .open-indicator{opacity:0;float:right;font-size:.75rem;color:#2383e2;margin-left:6px;transition:opacity .12s}
+.news-card:hover .open-indicator{opacity:1}
+@media(max-width:600px){.news-card .open-indicator{opacity:1;color:#9b9b9b}}
+
+.divider-thin{height:1px;background:#e9e9e9;margin:20px 0}
+.page-footer{margin-top:48px;padding-top:16px;border-top:1px solid #e9e9e9;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-size:.8rem;color:#9b9b9b}
+.page-footer .actions{display:flex;gap:8px}
+.page-footer button{background:none;border:1px solid #e9e9e9;border-radius:6px;padding:4px 10px;font-size:.8rem;color:#6b6b6b;cursor:pointer;transition:background .12s;font-family:inherit}
+.page-footer button:hover{background:#f7f6f3;border-color:#c0c0c0}
+
+.sources-bar{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:.8rem;color:#9b9b9b}
+.sources-bar .pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;background:#f0f0f0;color:#6b6b6b}
+
+.empty-state{padding:48px 16px;text-align:center;color:#9b9b9b}
+.empty-state .emoji{font-size:2rem;margin-bottom:8px}
+.empty-state p{font-size:.9rem}
+
+.modal-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;backdrop-filter:blur(2px)}
+.modal-overlay.open{opacity:1;visibility:visible}
+.modal{background:#fff;border-radius:12px;box-shadow:0 4px 32px rgba(0,0,0,.15);max-width:600px;width:100%;max-height:80vh;overflow-y:auto;padding:28px 24px 20px;position:relative}
+.modal-close{position:absolute;top:12px;right:16px;border:none;background:none;font-size:1.2rem;cursor:pointer;color:#9b9b9b;padding:4px 8px;border-radius:4px;transition:background .12s}
+.modal-close:hover{background:#f0f0f0}
+.modal h2{font-size:1.15rem;font-weight:600;margin-bottom:8px;padding-right:32px}
+.modal .modal-meta{font-size:.8rem;color:#9b9b9b;margin-bottom:16px}
+.modal .summary{font-size:.9rem;line-height:1.7;color:#37352f;white-space:pre-wrap;word-break:break-word}
+.modal .btn-open{display:inline-block;margin-top:16px;padding:6px 14px;background:#2383e2;color:#fff;border:none;border-radius:6px;font-size:.85rem;cursor:pointer;transition:background .12s}
+.modal .btn-open:hover{background:#1a6fc7}
+
+@media(prefers-color-scheme:dark){
+  body.dark-aware{background:#1f1f1f;color:#e0e0e0}
+  body.dark-aware .page-header,body.dark-aware .divider-thin,body.dark-aware .page-footer{border-color:#333}
+  body.dark-aware .news-card:hover{background:#2a2a2a}
+  body.dark-aware .news-card:active{background:#333}
+  body.dark-aware .news-card .title{color:#e0e0e0}
+  body.dark-aware .page-footer button{border-color:#333;color:#9b9b9b}
+  body.dark-aware .page-footer button:hover{background:#2a2a2a}
+  body.dark-aware .modal{background:#2a2a2a}
+  body.dark-aware .modal .summary{color:#d0d0d0}
+  body.dark-aware .modal-close:hover{background:#3a3a3a}
+  body.dark-aware .sources-bar .pill{background:#2a2a2a;color:#9b9b9b}
+  body.dark-aware .section-title{color:#e0e0e0}
+  body.dark-aware .empty-state{color:#6b6b6b}
+}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#d0d0d0;border-radius:3px}
+@media print{.page-footer .actions{display:none}.news-card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="page" role="main">
+  <header class="page-header">
+    <div class="icon">🤖</div>
+    <h1>AI 日报</h1>
+    <div class="meta">
+      <span id="dateDisplay"></span>
+      <span class="dot">·</span>
+      <span class="status" id="statusDisplay"><span class="spinner"></span> 加载中</span>
+    </div>
+    <div class="sources-bar" id="sourcesBar"></div>
+  </header>
+  <div class="section-title"><span class="toggle-icon">▶</span>今日速览</div>
+  <div class="news-list" id="newsList" role="list">
+    <div class="empty-state" id="emptyState">
+      <div class="emoji">🔍</div>
+      <p>正在获取今日 AI 资讯…</p>
+    </div>
+  </div>
+  <hr class="divider-thin">
+  <footer class="page-footer">
+    <span><span id="totalCount">0</span> 条 · 数据来源 <span id="sourceCount">0</span></span>
+    <div class="actions">
+      <button id="refreshBtn">⟳ 刷新</button>
+      <button id="darkToggle">🌙</button>
+    </div>
+  </footer>
+</div>
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" id="modalClose">✕</button>
+    <h2 id="modalTitle"></h2>
+    <div class="modal-meta" id="modalMeta"></div>
+    <div class="summary" id="modalSummary">加载摘要中…</div>
+    <button class="btn-open" id="modalOpenBtn">在浏览器中打开 ↗</button>
+  </div>
+</div>
+<script>
+(function(){
+'use strict';
+const C='ai_daily_cache',TT=4*3600000,MX=10;
+const $=i=>document.getElementById(i);
+const D={da:$('dateDisplay'),st:$('statusDisplay'),sb:$('sourcesBar'),
+nl:$('newsList'),em:$('emptyState'),tc:$('totalCount'),sc:$('sourceCount'),
+rb:$('refreshBtn'),dt:$('darkToggle'),mo:$('modalOverlay'),
+mc:$('modalClose'),mt:$('modalTitle'),mm:$('modalMeta'),ms:$('modalSummary'),mb:$('modalOpenBtn')};
+let mu='';
+
+D.da.textContent=(()=>{const d=new Date();
+return d.toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'})
++' \u00b7 '+d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});})();
+
+function st(t,c){D.st.innerHTML=t;D.st.className='status'+(c?' '+c:'');}
+function ld(){st('<span class="spinner"></span> \u83b7\u53d6\u4e2d\u2026','loading');}
+function dn(t){st(t+' \u66f4\u65b0','done');}
+
+function tr(s,l){return s.length>l?s.slice(0,l)+'\u2026':s;}
+
+function bc(i,idx){
+const c=document.createElement('div');
+c.className='news-card';c.setAttribute('role','listitem');c.setAttribute('tabindex','0');
+const s=i._s||'other';
+const tc={hn:'hn',devto:'devo'}[s]||'other';
+const tl={hn:'HN',devto:'DEV'}[s]||s;
+const ds=i.d?new Date(i.d).toLocaleDateString('zh-CN',{month:'short',day:'numeric'}):'';
+const p=i.p?i.p+' \U0001f44d':'';
+const a=i.a||'';
+c.innerHTML='<span class="num">'+(idx+1)+'</span>'
++'<span class="title">'+tr(i.t,120)
++'<span class="tag '+tc+'">'+tl+'</span></span>'
++'<div class="meta-row">'
++(ds?'<span>'+ds+'</span>':'')+(ds&&p?'<span class="dot">\u00b7</span>':'')+(p?'<span>'+p+'</span>':'')
++(a?'<span class="dot">\u00b7</span><span>'+a+'</span>':'')+'</div>'
++'<span class="open-indicator">\u2197 \u6253\u5f00</span>';
+c.addEventListener('click',()=>sm(i));
+c.addEventListener('keydown',e=>{if(e.key==='Enter')sm(i);});
+return c;
+}
+
+function rd(is,ss){
+D.nl.innerHTML='';
+if(!is||is.length===0){D.nl.appendChild(D.em);D.em.querySelector('p').textContent='\u6682\u65e0\u6570\u636e';D.tc.textContent='0';D.sc.textContent='0';return;}
+const sl=is.slice(0,MX);
+sl.forEach((i,idx)=>D.nl.appendChild(bc(i,idx)));
+D.tc.textContent=sl.length;D.sc.textContent=ss.size;
+D.sb.innerHTML='';
+ss.forEach(s=>{const lb={hn:'HackerNews',devto:'Dev.to'}[s]||s;const p=document.createElement('span');p.className='pill';p.innerHTML='<span style="color:#2383e2">\u2713</span> '+lb;D.sb.appendChild(p);});
+}
+
+function sm(i){
+mu=i.u||'';
+D.mt.textContent=i.t||'';
+const ds=i.d?new Date(i.d).toLocaleString('zh-CN'):'';
+const src={hn:'HackerNews',devto:'Dev.to'}[i._s]||i._s||'';
+D.mm.textContent=[ds,src].filter(Boolean).join(' \u00b7 ');
+D.ms.textContent=i.s||'\u6682\u65e0\u6458\u8981';
+D.mb.onclick=()=>{if(mu)window.open(mu,'_blank');};
+D.mo.classList.add('open');
+}
+D.mc.onclick=()=>D.mo.classList.remove('open');
+D.mo.onclick=e=>{if(e.target===D.mo)D.mo.classList.remove('open');};
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')D.mo.classList.remove('open');});
+
+function fs(){
+ld();
+const cached=localStorage.getItem(C);
+if(cached){try{const o=JSON.parse(cached);if(Date.now()-o.t<TT&&o.i&&o.i.length>=3){rd(o.i,new Set(o.ss));dn((new Date(o.t)).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}));return;}}catch(e){}}
+fh().then(({items,sources})=>{rd(items,sources);try{localStorage.setItem(C,JSON.stringify({t:Date.now(),i:items,ss:[...sources]}));}catch(e){}dn('\u521a\u521a');}).catch(e=>{st('\u2716 \u52a0\u8f7d\u5931\u8d25\uff0c\u8bf7\u91cd\u8bd5','error');console.error(e);});
+}
+
+async function fh(){
+const all=[];const ss=new Set();
+let ok=0;
+try{
+const r=await fetch('https://hn.algolia.com/api/v1/search_by_date?query=artificial+intelligence+AI+machine+learning&tags=story&hitsPerPage=15');
+if(r.ok)ok++;const d=await r.json();
+(d.hits||[]).forEach(h=>{if(!h.title||h.title==='null')return;all.push({t:h.title,u:h.url||'https://news.ycombinator.com/item?id='+h.objectID,d:h.created_at,p:h.points||h.points||0,a:h.author||'',s:h.story_text||'',_s:'hn'});});
+ss.add('hn');
+}catch(e){console.warn('HN fail',e);}
+try{
+const r=await fetch('https://dev.to/api/articles?tag=artificial-intelligence&per_page=10');
+if(r.ok)ok++;const d=await r.json();
+(d||[]).forEach(a=>{if(!a.title)return;all.push({t:a.title,u:a.url,d:a.published_at,p:a.positive_reactions_count||0,a:a.user?.name||'',s:a.description||'',_s:'devto'});});
+ss.add('devto');
+}catch(e){console.warn('Dev.to fail',e);}
+all.sort((a,b)=>new Date(b.d||0)-new Date(a.d||0));
+return{items:all,sources:ss};
+}
+
+D.rb.onclick=fs;
+D.dt.onclick=()=>{document.body.classList.toggle('dark-aware');D.dt.textContent=document.body.classList.contains('dark-aware')?'\u2600\ufe0f':'\U0001f319';};
+
+if(window.matchMedia('(prefers-color-scheme:dark)').matches){document.body.classList.add('dark-aware');D.dt.textContent='\u2600\ufe0f';}
+
+fs();
+})();
+</script>
+</body>
+</html>
