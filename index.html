@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-  <title>AI 日报 · 每日 10 条</title>
+  <title>AI 鏃ユ姤 路 姣忔棩 10 鏉?/title>
   <link rel="dns-prefetch" href="https://api.juejin.cn">
   <link rel="dns-prefetch" href="https://www.v2ex.com">
   <link rel="dns-prefetch" href="https://api.github.com">
@@ -88,38 +88,38 @@ a{color:inherit;text-decoration:none}
 <body>
 <div class="page" role="main">
   <header class="page-header">
-    <div class="icon">🤖</div>
-    <h1>AI 日报</h1>
+    <div class="icon">馃</div>
+    <h1>AI 鏃ユ姤</h1>
     <div class="meta">
       <span id="dateDisplay"></span>
-      <span class="dot">·</span>
-      <span class="status" id="statusDisplay"><span class="spinner"></span> 加载中</span>
+      <span class="dot">路</span>
+      <span class="status" id="statusDisplay"><span class="spinner"></span> 鍔犺浇涓?/span>
     </div>
     <div class="sources-bar" id="sourcesBar"></div>
   </header>
-  <div class="section-title"><span class="toggle-icon">▶</span>今日速览</div>
+  <div class="section-title"><span class="toggle-icon">鈻?/span>浠婃棩閫熻</div>
   <div class="news-list" id="newsList" role="list">
     <div class="empty-state" id="emptyState">
-      <div class="emoji">🔍</div>
-      <p>正在获取今日 AI 资讯…</p>
+      <div class="emoji">馃攳</div>
+      <p>姝ｅ湪鑾峰彇浠婃棩 AI 璧勮鈥?/p>
     </div>
   </div>
   <hr class="divider-thin">
   <footer class="page-footer">
-    <span><span id="totalCount">0</span> 条 · 数据来源 <span id="sourceCount">0</span></span>
+    <span><span id="totalCount">0</span> 鏉?路 鏁版嵁鏉ユ簮 <span id="sourceCount">0</span></span>
     <div class="actions">
-      <button id="refreshBtn">⟳ 刷新</button>
-      <button id="darkToggle">🌙</button>
+      <button id="refreshBtn">鉄?鍒锋柊</button>
+      <button id="darkToggle">馃寵</button>
     </div>
   </footer>
 </div>
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
-    <button class="modal-close" id="modalClose">✕</button>
+    <button class="modal-close" id="modalClose">鉁?/button>
     <h2 id="modalTitle"></h2>
     <div class="modal-meta" id="modalMeta"></div>
-    <div class="summary" id="modalSummary">加载摘要中…</div>
-    <button class="btn-open" id="modalOpenBtn">在浏览器中打开 ↗</button>
+    <div class="summary" id="modalSummary">鍔犺浇鎽樿涓€?/div>
+    <button class="btn-open" id="modalOpenBtn">鍦ㄦ祻瑙堝櫒涓墦寮€ 鈫?/button>
   </div>
 </div>
 <script>
@@ -198,46 +198,47 @@ fh().then(({items,sources})=>{rd(items,sources);try{localStorage.setItem(C,JSON.
 
 async function fh(){
 const all=[];const ss=new Set();
-// 1. \u6398\u91d1 - \u4e2d\u6587\u6280\u672f\u793e\u533a AI \u6587\u7ae0
 try{
-const r=await fetch('https://api.juejin.cn/recommend_api/v1/article/recommend_all_feed',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"cursor":"0","id_type":2,"sort_type":200,"limit":20}'});
+const r=await fetch('https://api.juejin.cn/recommend_api/v1/article/recommend_all_feed',{method:'POST',headers:{'Content-Type':'application/json'},body:'{"cursor":"0","id_type":2,"sort_type":200,"limit":30}'});
 const d=await r.json();
 if(d.data){
-  // \u7b5b\u9009 AI \u76f8\u5173\u6587\u7ae0 (\u901a\u8fc7\u6807\u7b7e)
-  const aiTags=['AI','\u4eba\u5de5\u667a\u80fd','\u5927\u6a21\u578b','\u6df1\u5ea6\u5b66\u4e60','\u673a\u5668\u5b66\u4e60','\u81ea\u7136\u8bed\u8a00\u5904\u7406','ChatGPT','GPT','\u56fe\u50cf\u8bc6\u522b','AIGC','LLM','\u8bed\u8a00\u6a21\u578b','\u8ba1\u7b97\u673a\u89c6\u89c9','\u6559\u7a0b','\u6280\u672f\u5206\u4eab','\u524d\u7aef','\u540e\u7aef','\u6570\u636e\u79d1\u5b66','\u667a\u80fd','\u7b97\u6cd5'];
   d.data.forEach(a=>{
-    const t=a.content?.title||a.article_info?.title||'';
+    const info=a.item_info.article_info;
+    const tags=a.item_info.tags||[];
+    const t=(info&&info.title)||'';
     if(!t)return;
-    const tags=a.content?.category||'';
-    const match=aiTags.some(tag=>t.includes(tag)||tags.includes(tag));
-    all.push({t:t,u:a.content?.article_url||a.article_info?.article_url||'https://juejin.cn/post/'+(a.article_id||a.content?.article_id),d:a.content?.ctime?new Date(a.content.ctime*1000).toISOString():new Date().toISOString(),p:a.content?.collect_count||0+'\u6536\u85cf',a:a.content?.author||a.author||'',s:a.content?.brief||a.article_info?.brief||'',_s:'jj'});
+    const tagNames=tags.map(x=>x.tag_name).join(' ');
+    const aiKW=['AI','\u4eba\u5de5\u667a\u80fd','\u5927\u6a21\u578b','\u6df1\u5ea6\u5b86\u4e60','\u673a\u5668\u5b86\u4e60','ChatGPT','GPT','AIGC','LLM','\u8bed\u8a00\u6a21\u578b','\u667a\u80fd','\u7b97\u6cd5','\u6570\u636e\u79d1\u5b66','\u81ea\u7136\u8bed\u8a00','\u8ba1\u7b97\u673a\u89c6\u89c9','\u56fe\u50cf','\u8bc6\u522b','\u751f\u6210\u5f0f','\u8f85\u52a9','\u5f00\u53d1','\u6280\u672f','\u524d\u7aef','\u540e\u7aef','\u4f18\u5316','\u5e95\u5c42','\u67b6\u6784','\u8bbe\u8ba1','\u5b9e\u8df5','\u5b9e\u6218'];
+    const match=aiKW.some(k=>t.includes(k)||tagNames.includes(k));
+    if(!match)return;
+    const id=a.item_info.article_id||info.article_id;
+    all.push({t:t,u:'https://juejin.cn/post/'+id,d:info.ctime?new Date(info.ctime*1000).toISOString():'',p:info.digg_count+'\u70b9\u8d5e',a:a.item_info.author_user_info?.user_name||'',s:info.brief_content||'',_s:'jj'});
   });
   ss.add('jj');
 }
-}catch(e){console.warn('\u6398\u91d1 fail',e);}
-// 2. V2EX - \u70ed\u95e8\u8bdd\u9898
+}catch(e){console.warn('juejin fail',e);}
 try{
 const r=await fetch('https://www.v2ex.com/api/topics/hot.json');
 const d=await r.json();
 (d||[]).forEach(t=>{
   const title=t.title||'';
-  const aiTags=['AI','\u4eba\u5de5\u667a\u80fd','\u5927\u6a21\u578b','\u6df1\u5ea6\u5b66\u4e60','\u673a\u5668\u5b66\u4e60','ChatGPT','GPT','\u667a\u80fd','\u7b97\u6cd5','LLM','\u6570\u636e','\u7f51\u7edc','\u5b89\u5168','\u524d\u7aef','\u540e\u7aef','\u5f00\u53d1','\u6280\u672f','\u8f6f\u4ef6'];
-  if(!title||!aiTags.some(tag=>title.includes(tag)))return;
+  const aiKW=['AI','\u4eba\u5de5\u667a\u80fd','\u5927\u6a21\u578b','\u6df1\u5ea6','ChatGPT','GPT','\u667a\u80fd','\u7b97\u6cd5','LLM','\u6570\u636e','\u7f51\u7edc','\u5b89\u5168','\u5f00\u53d1','\u6280\u672f','\u8f6f\u4ef6','\u7a0b\u5e8f\u5458','\u5de5\u7a0b\u5e08','\u4ea7\u54c1','\u79d1\u6280','AI\u53d8\u73b0','AI\u5de5\u5177'];
+  if(!title||!aiKW.some(k=>title.includes(k)))return;
   all.push({t:title,u:'https://www.v2ex.com/t/'+t.id,d:t.created?new Date(t.created*1000).toISOString():'',p:t.replies?'\u8bc4\u8bba '+t.replies:'',a:t.member?.username||'',s:t.content||'',_s:'vx'});
 });
 ss.add('vx');
-}catch(e){console.warn('V2EX fail',e);}
-// 3. GitHub - \u4e2d\u6587 AI \u76f8\u5173\u5f00\u6e90\u9879\u76ee
+}catch(e){console.warn('v2ex fail',e);}
 try{
-const queries=['AI','\u4eba\u5de5\u667a\u80fd','\u5927\u6a21\u578b','\u6df1\u5ea6\u5b66\u4e60','\u673a\u5668\u5b66\u4e60','LangChain','RAG','Agent'];
-const q=queries[Math.floor(Math.random()*queries.length)];
+const qs=['AI','\u4eba\u5de5\u667a\u80fd','\u5927\u6a21\u578b','LangChain','RAG','Agent'];
+const q=qs[Math.floor(Math.random()*qs.length)];
 const r=await fetch('https://api.github.com/search/repositories?q='+encodeURIComponent(q)+'&sort=stars&order=desc&per_page=5');
 const d=await r.json();
 (d.items||[]).forEach(item=>{
-  all.push({t:item.full_name+': '+item.description,u:item.html_url,d:item.pushed_at,p:item.stargazers_count+' \u2605 '+item.forks_count+' forks',a:item.owner?.login||'',s:item.description||'',_s:'gh'});
+  if(!item.description)return;
+  all.push({t:item.full_name+': '+item.description,u:item.html_url,d:item.pushed_at,p:item.stargazers_count+'\u2605 '+item.forks_count+' fork',a:item.owner?.login||'',s:item.description||'',_s:'gh'});
 });
 ss.add('gh');
-}catch(e){console.warn('GitHub fail',e);}
+}catch(e){console.warn('github fail',e);}
 all.sort((a,b)=>new Date(b.d||0)-new Date(a.d||0));
 return{items:all,sources:ss};
 }
